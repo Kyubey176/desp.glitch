@@ -1,3 +1,4 @@
+
 // create web audio api context
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -347,7 +348,7 @@ var clearCanvas = true;
   
 // var w = canvas.width / 10;
 var w = canvas.width / 100;
-var h = canvas.height / 20;
+var h = canvas.height / 2;
 
 var background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -400,7 +401,10 @@ let degree = 1;
 let iter = 1;
 let tpos = { x: 0, y: 0 };
 let flipper = 0;
-function draw() {
+canvasCtx.translate(canvas.width / 2, canvas.height / 2);
+
+function draw(){
+
   if (tpos.x < canvas.width-w) {
     tpos.x += w;
   } else {
@@ -411,8 +415,8 @@ function draw() {
     tpos.y = 0;
     flipper = flipper === 0 ? 1 : 0;
   }
-  canvasCtx.save();
-  canvasCtx.translate(tpos.x, tpos.y);
+  // canvasCtx.save();
+  // canvasCtx.translate(tpos.x, tpos.y);
   // canvasCtx.translate( canvas.width / 2, canvas.height / 2);
   // canvasCtx.rotate(degree++ * Math.PI / 180);
   // canvasCtx.translate( -(canvas.width / 2), -(canvas.height / 2));
@@ -441,7 +445,7 @@ function draw() {
   var hue = 200 + (20 * Math.sin(iter * Math.PI / 360));
   foreCtx.strokeStyle = 'hsl(' + hue + ', 60%, 40%)';
   // hue = (360 * Math.sin(iter * Math.PI / (360 * 2)));
-  hue = 0 + (50 * Math.sin(iter * Math.PI / (360 * 2)));
+  hue = 0 + (360 * Math.sin(iter * Math.PI / (360 * 2)));
   canvasCtx.strokeStyle = `hsl( ${hue}, 100%, ${60 + ((40 / canvas.height) * tpos.y)}%)`;
   if (iter % 10 === 0) {
     // foreCtx.clearRect(0, 0, foreCanvas.width, foreCanvas.height);
@@ -474,14 +478,17 @@ function draw() {
 
     if (i === 0) {
       foreCtx.moveTo(fx, fy);
-      canvasCtx.moveTo(x, y);
+      canvasCtx.moveTo(x, y+(y*0.5));
     } else {
       foreCtx.lineTo(fx, fy);
-      canvasCtx.lineTo(x, y);
+      canvasCtx.moveTo(x, y+(y*0.5));
     }
 
-    x += sliceWidth;
-    fx += foreSliceWidth;
+    x = 0;
+    canvasCtx.translate(sliceWidth, 0);
+    // canvasCtx.putImageData(background, 0, 0);
+    // x += sliceWidth;
+    // fx += foreSliceWidth;
   }
   foreCtx.lineTo(foreCanvas.width, fy);
   // foreCtx.stroke();    
@@ -490,8 +497,14 @@ function draw() {
 
   canvasCtx.lineTo(w, y);
   // if (iter % 2 === flipper)
+  canvasCtx.rotate(10 * Math.PI / 360);
+  // canvasCtx.putImageData(background, -sliceWidth * timeDomain.len, 0);
+  canvasCtx.putImageData(background, 0, 0);
+  // canvasCtx.rotate(-30 * Math.PI / 360);
+  canvasCtx.translate(-sliceWidth * timeDomain.len, 0);
   canvasCtx.stroke();
-  canvasCtx.restore();
+  // canvasCtx.restore();
+  background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
 
 };
 
