@@ -499,13 +499,19 @@ function draw(){
   // if (iter % 2 === flipper)
   canvasCtx.rotate(10 * Math.PI / 360);
   // canvasCtx.putImageData(background, -sliceWidth * timeDomain.len, 0);
-  canvasCtx.putImageData(background, 0, 0);
-  canvasCtx.scale(0.999, 0.999);
+  // canvasCtx.putImageData(background, 0, 0);
   // canvasCtx.rotate(-30 * Math.PI / 360);
   canvasCtx.translate(-sliceWidth * timeDomain.len, 0);
   canvasCtx.stroke();
   // canvasCtx.restore();
-  background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+  // background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+  var imageObject=new Image();
+  imageObject.onload=function(){
+      canvasCtx.scale(1.1, 1.1);
+      canvasCtx.drawImage(imageObject,0,0);
+      canvasCtx.scale(0.9, 0.9);
+  }
+  imageObject.src=canvas.toDataURL();
 
 };
 
