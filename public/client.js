@@ -469,7 +469,7 @@ function draw(){
 
     // var v = dataArray[sliceIndexs[i]] / 128.0;
     var v = timeDomain[i] / 128.0;
-    var y = v * h / 2;
+    var y = v * h / 1.8;
     var fy = v * (foreCanvas.height*1.2) / 2;
     
     // canvasCtx.translate(canvas.width / 2, canvas.height / 2);
@@ -478,10 +478,10 @@ function draw(){
 
     if (i === 0) {
       foreCtx.moveTo(fx, fy);
-      canvasCtx.moveTo(x, y+(y*0.5));
+      canvasCtx.moveTo(x, y);
     } else {
       foreCtx.lineTo(fx, fy);
-      canvasCtx.moveTo(x, y+(y*0.5));
+      canvasCtx.lineTo(x, y);
     }
 
     x = 0;
