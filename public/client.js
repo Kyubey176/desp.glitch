@@ -500,6 +500,7 @@ function draw(){
   canvasCtx.rotate(10 * Math.PI / 360);
   // canvasCtx.putImageData(background, -sliceWidth * timeDomain.len, 0);
   canvasCtx.putImageData(background, 0, 0);
+  canvasCtx.scale(0.999, 0.999);
   // canvasCtx.rotate(-30 * Math.PI / 360);
   canvasCtx.translate(-sliceWidth * timeDomain.len, 0);
   canvasCtx.stroke();
