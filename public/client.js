@@ -156,12 +156,12 @@ Timeline.prototype.schedule = function() {
 
 var timeline = new Timeline();
 timeline.loop(seqA);
-timeline.loop(seqB, 8);
-timeline.thunk(() => {
-  oscillators[1].type = 'sine';
-  oscillators[1].lowpass.frequency.linearRampToValueAtTime(100, 18);
-  oscillators.push(createOscillator(notes['G2'] + offset));
-}, 16);
+// timeline.loop(seqB, 8);
+// timeline.thunk(() => {
+//   oscillators[1].type = 'sine';
+//   oscillators[1].lowpass.frequency.linearRampToValueAtTime(100, 18);
+//   oscillators.push(createOscillator(notes['G2'] + offset));
+// }, 16);
 
 // var nextKey = [
 //    notes['B4'],
@@ -215,7 +215,7 @@ function keyChange(time) {
   }, time);
 }
 
-keyChange(12);
+// keyChange(12);
 
 document.body.addEventListener('click', function(event){
   randomizeLead();
@@ -318,12 +318,12 @@ canvasCtx.fillStyle = 'rgba(255, 255, 255, 1)';
 canvasCtx.strokeStyle = `hsl(${Math.random() * 360}, 80%, 70%)`;
 canvasCtx.lineWidth = 1;
 foreCtx.strokeStyle = '#ffffff'; // `hsl(${Math.random() * 360}, 80%, 70%)`;
-foreCtx.lineWidth = 3;
+foreCtx.lineWidth = 30;
 
 var clearCanvas = true;
   
   // var w = canvas.width / 10;
-  var w = canvas.width / 50;
+  var w = canvas.width / 1;
   var h = canvas.height / 50;
 
 var background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
@@ -336,7 +336,7 @@ function animationSequence() {
   let bufGrow = setInterval(function(){
       timeDomain = setupBuffer(Math.max(bufferSize+=( polarity == 1 ? bufferSize : -(bufferSize/2)), 32));
       canvasCtx.lineWidth += polarity; // (canvasCtx.lineWidth / lineInterval);
-      foreCtx.lineWidth += polarity; // (canvasCtx.lineWidth / lineInterval);
+      foreCtx.lineWidth += (polarity*0.5); // (canvasCtx.lineWidth / lineInterval);
       // w += (w / (lineInterval ));
       fill(timeDomain);
       if (bufferSize > 5000 || bufferSize === 32) {
@@ -350,6 +350,7 @@ function animationSequence() {
             // w = canvas.width / 10;
             canvasCtx.fillStyle = s;
             canvasCtx.strokeStyle = `hsl(${Math.random() * 360}, 80%, 70%)`;
+            foreCtx.lineWidth = 30;
             // canvasCtx.lineWidth = foreCtx.lineWidth = 1;
             background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
             clearCanvas = true;
@@ -371,14 +372,14 @@ let degree = 1;
 let iter = 1;
 let tpos = { x: 0, y: 0 };
 function draw() {
-  if (tpos.y < canvas.height-h) {
-    tpos.y += h;
-  } else {
+  if (tpos.x < canvas.width-w) {
     tpos.x += w;
-    tpos.y = 0;
-  }
-  if (tpos.x > canvas.width-w) {
+  } else {
+    tpos.y += h;
     tpos.x = 0;
+  }
+  if (tpos.y > canvas.height-h) {
+    tpos.y = 0;
   }
   canvasCtx.save();
   canvasCtx.translate(tpos.x, tpos.y);
@@ -387,9 +388,9 @@ function draw() {
   // canvasCtx.translate( -(canvas.width / 2), -(canvas.height / 2));
 
   iter++;
-  if (iter % 5 === 0) {
-    canvasCtx.strokeStyle = `hsl(${Math.random() * 360}, 80%, 70%)`;
-  }
+  // if (iter % 5 === 0) {
+  //   canvasCtx.strokeStyle = `hsl(${Math.random() * 360}, 80%, 70%)`;
+  // }
 
   // var drawVisual = requestAnimationFrame(
   //   () => requestAnimationFrame(
@@ -407,7 +408,15 @@ function draw() {
   if (clearCanvas) {
     // canvasCtx.putImageData(background, 0, 0);
   }
-  foreCtx.clearRect(0, 0, foreCanvas.width, foreCanvas.height);
+  var hue = 200 + (20 * Math.sin(iter * Math.PI / 10));
+  foreCtx.strokeStyle = 'hsl(' + hue + ', 80%, 80%)';
+  hue = (360 * Math.sin(iter * Math.PI / 360));
+  canvasCtx.strokeStyle = 'hsl( ' + hue + ', 60%, 80%)';
+  if (iter % 4 === 0) {
+    foreCtx.clearRect(0, 0, foreCanvas.width, foreCanvas.height);
+  }
+  foreCtx.save();
+  foreCtx.translate(0, foreCanvas.height / 2);
 
   canvasCtx.beginPath();
   foreCtx.beginPath();
@@ -444,9 +453,12 @@ function draw() {
     fx += foreSliceWidth;
   }
   foreCtx.lineTo(foreCanvas.width, fy);
-  foreCtx.stroke();
+  if (iter % 2 === 0) {
+    foreCtx.stroke();    
+  }
   foreCtx.closePath();
-  
+  foreCtx.restore();
+
   canvasCtx.lineTo(w, y);
   canvasCtx.stroke();
   canvasCtx.restore();
