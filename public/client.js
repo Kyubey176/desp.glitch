@@ -41,25 +41,25 @@ function createOscillator(hz) {
   lowpass.frequency.value = 50000;
   lowpass.Q.value = 10;
   var distortion = audioCtx.createWaveShaper();
-  oscillator.connect(lowpass);
+  oscillator.connect(distortion);
   lowpass.connect(highpass);
   // oscillator.connect(gainNode);
   oscillator.start();
   oscillator.highpass = highpass;
   oscillator.lowpass = lowpass;
   oscillator.distortion = distortion;
-  distortion.curve = makeDistortionCurve(100);
+  distortion.curve = makeDistortionCurve(10);
   distortion.oversample = '4x';
   
   // Connect the source to the gain node.
-  highpass.connect(distortion);
-  distortion.connect(gainNode);
+  highpass.connect(gainNode);
+  distortion.connect(lowpass);
   return oscillator;
 }
 
 // var oscillators = [48 + offset, 56 + offset, 64 + offset].map(hz => {
-var oscillators = [notes['C2']  + offset, notes['G2'] + offset, notes['D3'] + offset,
-                   notes['C3']  + offset, notes['G3'] + offset, notes['D4'] + offset].map(createOscillator);
+var oscillators = [notes['A♭2']  + offset, notes['C2'] + offset, notes['E♭2'] + offset,
+                   notes['G3']  + offset, notes['G2'] + offset].map(createOscillator);
 
 // biquadFilterNode.connect(gainNode);
 
@@ -82,28 +82,11 @@ function Sequence(notes, interval, target) {
 // ], 1/2);
 
 
-var seqA = new Sequence([
-   notes['D3'],
-   notes['C3'],
-   notes['G3'], // notes['A3'],
-   notes['G2'],
-   notes['G3'],
-   notes['G2'],
-], 2, oscillators[0].frequency);
-
-var seqB = new Sequence([
-   notes['D4'],
-   notes['C4'],
-   notes['F4'],
-   notes['G3'],
-], 1/4, oscillators[1].frequency);
-
-
 function Timeline() {
    this.looping = [];
    this.deferred = {};
    this.thunks = {};
-   this.BPM = 80;
+   this.BPM = 20;
    this.barLength = (60 / this.BPM) * 4;
    this.scheduled = {};
 }
@@ -124,6 +107,8 @@ Timeline.prototype.schedule = function() {
    var now = new Date().getTime();
    var cur = audioCtx.currentTime;
    var nextBar = (Math.ceil(cur / this.barLength) * this.barLength) / this.barLength;
+   var nextBarAt = nextBar * this.barLength;
+   console.log([cur, nextBar, nextBarAt]);
    // console.log([nextBar, this.barLength, cur]);
    if (this.deferred[nextBar]) {
        this.loop(this.deferred[nextBar]);
@@ -135,9 +120,12 @@ Timeline.prototype.schedule = function() {
    }
    this.looping.forEach((seq) => {
      var nextBar = Math.ceil(cur / seq.length) * seq.length;
+     // console.log([nextBar, this.scheduled[nextBar]]);
+     var nextBarAt = nextBar * this.barLength;
      if (!this.scheduled[nextBar]) {
        this.scheduled[nextBar] = true;
        var interval = this.barLength * seq.interval;
+       console.log([interval, this.barLength]);
        // oscillators[0].frequency.linearRampToValueAtTime(seq.notes[0] + offset, nextBar);
        // oscillators[0].frequency.linearRampToValueAtTime(seq.notes[0] + offset, nextBar + (interval * 0.9999));
        // oscillators[0].frequency.linearRampToValueAtTime(seq.notes[1] + offset, nextBar + (interval * 1));
@@ -146,16 +134,51 @@ Timeline.prototype.schedule = function() {
        // oscillators[0].frequency.linearRampToValueAtTime(seq.notes[2] + offset, nextBar + (interval * 2.9999));
        // oscillators[0].frequency.linearRampToValueAtTime(seq.notes[3] + offset, nextBar + (interval * 3));
        // oscillators[0].frequency.linearRampToValueAtTime(seq.notes[3] + offset, nextBar + (interval * 3.9999));
-       seq.target.linearRampToValueAtTime(seq.notes[0] + offset, nextBar);
-       seq.target.setValueAtTime(seq.notes[1] + offset, nextBar + (interval * 1));
-       seq.target.setValueAtTime(seq.notes[2] + offset, nextBar + (interval * 2));
-       seq.target.setValueAtTime(seq.notes[3] + offset, nextBar + (interval * 3));
+       // seq.target.linearRampToValueAtTime(seq.notes[0] + offset, nextBarAt);         
+       seq.notes.forEach((n, i) => {
+         seq.target.setValueAtTime(seq.notes.slice(i-1)[0] + offset, (nextBarAt + (interval * i) - 0.2));         
+         seq.target.linearRampToValueAtTime(seq.notes[i] + offset, nextBarAt + (interval * i));         
+       })
      }     
    });
 }
 
+
+var seqA = new Sequence([
+   notes['D3'],
+   // notes['C3'],
+   notes['G3'], // notes['A3'],
+   notes['G2'],
+   notes['D2'],
+   notes['G3'],
+   notes['G2'],
+], 2, oscillators[0].frequency);
+
+var seqA2 = new Sequence([
+   notes['A♭3'],
+   notes['E♭2'],
+   notes['G3'], // notes['A3'],
+   // notes['G2'],
+   notes['E♭2'],
+   // notes['G3'],
+], 1/8, oscillators[4].frequency);
+
+var seqLowpass = new Sequence([
+   100,
+   200,
+], 1/8, oscillators[3].lowpass.frequency);
+
+var seqB = new Sequence([
+   notes['D4'],
+   notes['C4'],
+   notes['F4'],
+   notes['G3'],
+], 1/4, oscillators[1].frequency);
+
 var timeline = new Timeline();
-timeline.loop(seqA);
+// timeline.loop(seqA);
+timeline.loop(seqA2);
+// timeline.loop(seqLowpass);
 // timeline.loop(seqB, 8);
 // timeline.thunk(() => {
 //   oscillators[1].type = 'sine';
@@ -318,13 +341,13 @@ canvasCtx.fillStyle = 'rgba(255, 255, 255, 1)';
 canvasCtx.strokeStyle = `hsl(${Math.random() * 360}, 80%, 70%)`;
 canvasCtx.lineWidth = 1;
 foreCtx.strokeStyle = '#ffffff'; // `hsl(${Math.random() * 360}, 80%, 70%)`;
-foreCtx.lineWidth = 30;
+foreCtx.lineWidth = 1;
 
 var clearCanvas = true;
   
-  // var w = canvas.width / 10;
-  var w = canvas.width / 1;
-  var h = canvas.height / 50;
+// var w = canvas.width / 10;
+var w = canvas.width / 1;
+var h = canvas.height / 40;
 
 var background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -337,6 +360,9 @@ function animationSequence() {
       timeDomain = setupBuffer(Math.max(bufferSize+=( polarity == 1 ? bufferSize : -(bufferSize/2)), 32));
       canvasCtx.lineWidth += polarity; // (canvasCtx.lineWidth / lineInterval);
       foreCtx.lineWidth += (polarity*0.5); // (canvasCtx.lineWidth / lineInterval);
+      if (foreCtx.lineWidth < 20) {
+        foreCtx.lineWidth++;
+      }
       // w += (w / (lineInterval ));
       fill(timeDomain);
       if (bufferSize > 5000 || bufferSize === 32) {
@@ -350,7 +376,8 @@ function animationSequence() {
             // w = canvas.width / 10;
             canvasCtx.fillStyle = s;
             canvasCtx.strokeStyle = `hsl(${Math.random() * 360}, 80%, 70%)`;
-            foreCtx.lineWidth = 30;
+            foreCtx.lineWidth = 25;
+            canvasCtx.lineWidth = 10;
             // canvasCtx.lineWidth = foreCtx.lineWidth = 1;
             background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
             clearCanvas = true;
@@ -371,6 +398,7 @@ animationSequence();
 let degree = 1;
 let iter = 1;
 let tpos = { x: 0, y: 0 };
+let flipper = 0;
 function draw() {
   if (tpos.x < canvas.width-w) {
     tpos.x += w;
@@ -380,6 +408,7 @@ function draw() {
   }
   if (tpos.y > canvas.height-h) {
     tpos.y = 0;
+    flipper = flipper === 0 ? 1 : 0;
   }
   canvasCtx.save();
   canvasCtx.translate(tpos.x, tpos.y);
@@ -408,15 +437,16 @@ function draw() {
   if (clearCanvas) {
     // canvasCtx.putImageData(background, 0, 0);
   }
-  var hue = 200 + (20 * Math.sin(iter * Math.PI / 10));
-  foreCtx.strokeStyle = 'hsl(' + hue + ', 80%, 80%)';
-  hue = (360 * Math.sin(iter * Math.PI / 360));
-  canvasCtx.strokeStyle = 'hsl( ' + hue + ', 60%, 80%)';
-  if (iter % 4 === 0) {
-    foreCtx.clearRect(0, 0, foreCanvas.width, foreCanvas.height);
+  var hue = 200 + (20 * Math.sin(iter * Math.PI / 360));
+  foreCtx.strokeStyle = 'hsl(' + hue + ', 60%, 40%)';
+  // hue = (360 * Math.sin(iter * Math.PI / (360 * 2)));
+  hue = 0 + (50 * Math.sin(iter * Math.PI / (360 * 2)));
+  canvasCtx.strokeStyle = `hsl( ${hue}, 100%, ${60 + ((40 / canvas.height) * tpos.y)}%)`;
+  if (iter % 10 === 0) {
+    // foreCtx.clearRect(0, 0, foreCanvas.width, foreCanvas.height);
   }
   foreCtx.save();
-  foreCtx.translate(0, foreCanvas.height / 2);
+  foreCtx.translate(0, foreCanvas.height / 4);
 
   canvasCtx.beginPath();
   foreCtx.beginPath();
@@ -435,7 +465,7 @@ function draw() {
     // var v = dataArray[sliceIndexs[i]] / 128.0;
     var v = timeDomain[i] / 128.0;
     var y = v * h / 2;
-    var fy = v * foreCanvas.height / 2;
+    var fy = v * (foreCanvas.height*1.2) / 2;
     
     // canvasCtx.translate(canvas.width / 2, canvas.height / 2);
     // canvasCtx.rotate(((90 / timeDomain.len) * i) * Math.PI / 180);
@@ -453,13 +483,12 @@ function draw() {
     fx += foreSliceWidth;
   }
   foreCtx.lineTo(foreCanvas.width, fy);
-  if (iter % 2 === 0) {
-    foreCtx.stroke();    
-  }
+  foreCtx.stroke();    
   foreCtx.closePath();
   foreCtx.restore();
 
   canvasCtx.lineTo(w, y);
+  // if (iter % 2 === flipper)
   canvasCtx.stroke();
   canvasCtx.restore();
 
