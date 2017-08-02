@@ -339,30 +339,31 @@ var foreCtx = foreCanvas.getContext("2d");
 canvasCtx.fillStyle = 'rgba(255, 255, 255, 1)';
 // canvasCtx.strokeStyle = 'rgba(0, 5, 5, 1)';
 canvasCtx.strokeStyle = `hsl(${Math.random() * 360}, 80%, 70%)`;
-canvasCtx.lineWidth = 1;
+canvasCtx.lineWidth = 10;
 foreCtx.strokeStyle = '#ffffff'; // `hsl(${Math.random() * 360}, 80%, 70%)`;
-foreCtx.lineWidth = 1;
+foreCtx.lineWidth = 25;
 
 var clearCanvas = true;
   
 // var w = canvas.width / 10;
-var w = canvas.width / 1;
-var h = canvas.height / 40;
+var w = canvas.width / 100;
+var h = canvas.height / 20;
 
 var background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
 
-var polarity = 1;
+var polarity = -1;
 
 function animationSequence() {
   // var lineInterval = 1 + (Math.random()*2);
   var lineInterval = 0.5;
   let bufGrow = setInterval(function(){
-      timeDomain = setupBuffer(Math.max(bufferSize+=( polarity == 1 ? bufferSize : -(bufferSize/2)), 32));
-      canvasCtx.lineWidth += polarity; // (canvasCtx.lineWidth / lineInterval);
-      foreCtx.lineWidth += (polarity*0.5); // (canvasCtx.lineWidth / lineInterval);
-      if (foreCtx.lineWidth < 20) {
-        foreCtx.lineWidth++;
-      }
+      let p = -polarity;
+      timeDomain = setupBuffer(Math.max(bufferSize+=( p == 1 ? bufferSize : -(bufferSize/2)), 32));
+      canvasCtx.lineWidth += polarity*1.5; // (canvasCtx.lineWidth / lineInterval);
+      foreCtx.lineWidth += (polarity*4); // (canvasCtx.lineWidth / lineInterval);
+      // if (foreCtx.lineWidth < 20) {
+      //   foreCtx.lineWidth++;
+      // }
       // w += (w / (lineInterval ));
       fill(timeDomain);
       if (bufferSize > 5000 || bufferSize === 32) {
@@ -376,8 +377,8 @@ function animationSequence() {
             // w = canvas.width / 10;
             canvasCtx.fillStyle = s;
             canvasCtx.strokeStyle = `hsl(${Math.random() * 360}, 80%, 70%)`;
-            foreCtx.lineWidth = 25;
-            canvasCtx.lineWidth = 10;
+            // foreCtx.lineWidth = 25;
+            // canvasCtx.lineWidth = 10;
             // canvasCtx.lineWidth = foreCtx.lineWidth = 1;
             background = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
             clearCanvas = true;
@@ -483,7 +484,7 @@ function draw() {
     fx += foreSliceWidth;
   }
   foreCtx.lineTo(foreCanvas.width, fy);
-  foreCtx.stroke();    
+  // foreCtx.stroke();    
   foreCtx.closePath();
   foreCtx.restore();
 
